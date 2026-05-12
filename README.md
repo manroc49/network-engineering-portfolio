@@ -15,7 +15,7 @@ Network engineering focused on routing, switching, and protocol analysis. This p
 
 ## Project Index
 
-### T1: Fundamentals: Layer 2 & Static Routing (Projects N01-N05)
+### T1: Fundamentals: Layer 2 & Static Routing
 
 | # | Project | What I Proved | Folder |
 |---|---------|---------------|--------|
@@ -25,7 +25,7 @@ Network engineering focused on routing, switching, and protocol analysis. This p
 | N04 | EtherChannel (LACP) | Bundled 3 ports into single logical link with load balancing | [/T1-fundamentals/N04-etherchannel/](T1-fundamentals/N04-etherchannel/) |
 | N05 | Static Routing | Configured static routes across 3 routers, default routes, recursive lookups | [/T1-fundamentals/N05-static-routing/](T1-fundamentals/N05-static-routing/) |
 
-### T2: Dynamic Routing (Projects N06-N10)
+### T2: Dynamic Routing
 
 | # | Project | What I Proved | Folder |
 |---|---------|---------------|--------|
@@ -35,7 +35,7 @@ Network engineering focused on routing, switching, and protocol analysis. This p
 | N09 | Route Redistribution | OSPF ↔ EIGRP redistribution, seed metrics, route filtering | [/T2-dynamic-routing/N09-route-redistribution/](T2-dynamic-routing/N09-route-redistribution/) |
 | N10 | HSRP Gateway Redundancy | Active/Standby gateway with preemption, 99.9% availability | [/T2-dynamic-routing/N10-hsrp-gateway-redundancy/](T2-dynamic-routing/N10-hsrp-gateway-redundancy/) |
 
-### T3: Advanced WAN (Projects N11-N14)
+### T3: Advanced WAN
 
 | # | Project | What I Proved | Folder |
 |---|---------|---------------|--------|
