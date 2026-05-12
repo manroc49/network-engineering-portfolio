@@ -23,21 +23,61 @@ I can take a flat /24 network and segment it into three VLANs (10, 20, 30) on a 
 - [switch-config.txt](switch-config.txt)
 - [router-config.txt](router-config.txt)
 
-## Verification Screenshots
+## Verification Results (All Passed)
+
 | Test | Command | Result |
 |------|---------|--------|
-| VLAN assignment | `show vlan brief` | [screenshot](screenshots/vlan-brief.png) |
-| Trunk status | `show interfaces trunk` | [screenshot](screenshots/trunk-status.png) |
-| Router subinterfaces | `show ip interface brief` | [screenshot](screenshots/router-interfaces.png) |
-| Routing table | `show ip route` | [screenshot](screenshots/router-route.png) |
-| Ping PC1 → PC2 (inter‑VLAN) | `ping 192.168.20.20` from PC1 | [screenshot](screenshots/ping-results.png) |
-| Ping PC1 → PC3 (inter‑VLAN) | `ping 192.168.30.30` from PC1 | [screenshot](screenshots/ping-results.png) |
+| VLAN assignment | `show vlan brief` | ✅ Fa0/1=VLAN10, Fa0/2=VLAN20, Fa0/3=VLAN30 |
+| Trunk status | `show interfaces trunk` | ✅ Gi0/1 trunk, allowed VLANs 10,20,30 |
+| Router subinterfaces | `show ip interface brief` | ✅ Gi0/0.10, .20, .30 all up/up |
+| Routing table | `show ip route` | ✅ Directly connected routes for .10,.20,.30 |
+| Inter-VLAN ping test | `ping 192.168.20.20` and `ping 192.168.30.30` from PC1 | ✅ Both successful |
+
+## Screenshots
+- [VLAN assignment](screenshots/vlan-brief.png)
+- [Trunk status](screenshots/trunk-status.png)
+- [Router interfaces](screenshots/router-interfaces.png)
+- [Router routing table](screenshots/router-route.png)
+- [Ping results](screenshots/ping-results.png)
+
+## Issues I Ran Into & How I Fixed Them
+
+| Problem | Symptom | Fix |
+|---------|---------|-----|
+| Switch couldn't reach gateway | Ping to 192.168.30.1 failed | Added `ip default-gateway 192.168.30.1` |
+| Router subinterfaces down | `show ip interface brief` showed down/down | Forgot `no shutdown` on physical interface Gi0/0 |
+| PC1 couldn't ping PC2 | Request timed out | PC2 had wrong default gateway (set to .10.1 instead of .20.1) |
+
+## What I'd Do Differently Next Time
+
+- Use a **Layer 3 switch** instead of router-on-a-stick for faster inter-VLAN routing
+- Add **SSH configuration** on the switch instead of telnet
+- Document **VLAN numbering strategy** (10=Engineering, 20=Sales, 30=Management) for scalability
+
+## Key Commands Used
+
+### Switch
+
+- show vlan brief
+- show interfaces trunk
+- show running-config
+
+### Router
+- show ip interface brief
+- show ip route
+- show running-config
+
+### PC
+- ping 192.168.10.1
+- ping 192.168.20.20
+- ping 192.168.30.30
+
 
 ## What I Learned
-- Access ports carry **one** VLAN; trunk ports carry **multiple** VLANs (802.1Q).
-- Router‑on‑a‑stick uses logical subinterfaces with `encapsulation dot1Q`.
-- The switch needs an SVI and `ip default-gateway` for remote management.
-- Without the router, VLANs cannot communicate (L2 isolation).
+- Access ports carry **one** VLAN; trunk ports carry **multiple** VLANs (802.1Q)
+- Router‑on‑a‑stick uses logical subinterfaces with `encapsulation dot1Q`
+- The switch needs an SVI and `ip default-gateway` for remote management
+- Without the router, VLANs cannot communicate (L2 isolation)
 
 ## Time to Complete
 25 minutes (including documentation)
