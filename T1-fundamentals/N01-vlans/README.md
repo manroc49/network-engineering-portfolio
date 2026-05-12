@@ -30,8 +30,8 @@ I can take a flat /24 network and segment it into three VLANs (10, 20, 30) on a 
 | Trunk status | `show interfaces trunk` | [screenshot](screenshots/trunk-status.png) |
 | Router subinterfaces | `show ip interface brief` | [screenshot](screenshots/router-interfaces.png) |
 | Routing table | `show ip route` | [screenshot](screenshots/router-route.png) |
-| Ping PC1 → PC2 (inter‑VLAN) | `ping 192.168.20.20` from PC1 | [screenshot](screenshots/ping-pc1-to-pc2.png) |
-| Ping PC1 → PC3 (inter‑VLAN) | `ping 192.168.30.30` from PC1 | [screenshot](screenshots/ping-pc1-to-pc3.png) |
+| Ping PC1 → PC2 (inter‑VLAN) | `ping 192.168.20.20` from PC1 | [screenshot](screenshots/ping-results.png) |
+| Ping PC1 → PC3 (inter‑VLAN) | `ping 192.168.30.30` from PC1 | [screenshot](screenshots/ping-results.png) |
 
 ## What I Learned
 - Access ports carry **one** VLAN; trunk ports carry **multiple** VLANs (802.1Q).
