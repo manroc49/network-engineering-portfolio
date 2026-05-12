@@ -39,6 +39,7 @@ I can take a flat /24 network and segment it into three VLANs (10, 20, 30) on a 
 - [Router interfaces](screenshots/router-interfaces.png)
 - [Router routing table](screenshots/router-route.png)
 - [Ping results](screenshots/ping-results.png)
+- [Topology](screenshots/topology.png)
 
 ## Issues I Ran Into & How I Fixed Them
 
