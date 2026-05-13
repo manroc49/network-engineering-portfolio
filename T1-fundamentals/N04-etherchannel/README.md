@@ -45,10 +45,10 @@ I can bundle multiple physical links between two switches into a single logical 
 | Restored port | `no shutdown` on Gig0/1 | ✅ Gig0/1(P) returns |
 
 ## Screenshots
-
-- [EtherChannel summary (both ports bundled)](screenshots/N04-etherchannel-summary.png)
-- [Ping continuing after port shutdown](screenshots/N04-ping-during-failure.png)
-- [EtherChannel after failure (one port down)](screenshots/N04-etherchannel-after-failure.png)
+- [Topology](screenshots/topology.png
+- [EtherChannel summary)](screenshots/etherchannel-summary.png)
+- [Ping continuing after port shutdown](screenshots/ping-during-failure.png)
+- [EtherChannel after failure (one port down)](screenshots/etherchannel-after-failure.png)
 
 ## Issues I Ran Into & How I Fixed Them
 
