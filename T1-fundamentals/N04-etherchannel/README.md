@@ -45,7 +45,8 @@ I can bundle multiple physical links between two switches into a single logical 
 | Restored port | `no shutdown` on Gig0/1 | ✅ Gig0/1(P) returns |
 
 ## Screenshots
-- [Topology](screenshots/topology.png
+- [Topology](screenshots/topology.png)
+- [Topology 2](screenshots/topology-2.png)
 - [EtherChannel summary)](screenshots/etherchannel-summary.png)
 - [Ping continuing after port shutdown](screenshots/ping-during-failure.png)
 - [EtherChannel after failure (one port down)](screenshots/etherchannel-after-failure.png)
