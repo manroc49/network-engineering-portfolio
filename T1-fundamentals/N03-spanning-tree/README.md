@@ -105,7 +105,7 @@ Look for red triangle on physical topology view (Packet Tracer does not show `Al
 | Pings don't resume | Wait up to 50 seconds |
 
 ## Screenshots 
--  [Topology 1](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/topology-1.png))
+-  [Topology 1](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/topology-1.png)
 -  [Topology 2](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/topolgy-2.png)
 -  [Initial blocking port](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/stp-intial-blocking.png)
 -  [Root bridge verification](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/stp-root-verified.png)
