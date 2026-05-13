@@ -105,12 +105,12 @@ Look for red triangle on physical topology view (Packet Tracer does not show `Al
 | Pings don't resume | Wait up to 50 seconds |
 
 ## Screenshots 
--  [Topology 1](/screenshots/topology-1.png)
--  [Topology 2](/screenshots/topolgy-2.png)
--  [Initial blocking port](/screenshots/stp-initial-blocking.png)
--  [Root bridge verification](/screenshots/stp-root-verified.png)
--  [Ping loss during failover](/screenshots/ping-failure-convergence.png)
--  [New blocking port (red triangle)](/sreenshots/stp-new-blocking.png)
+-  [Topology 1](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/topology-1.png))
+-  [Topology 2](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/topolgy-2.png)
+-  [Initial blocking port](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/stp-intial-blocking.png)
+-  [Root bridge verification](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/stp-root-verified.png)
+-  [Ping loss during failover](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/ping-failure-convergence.png)
+-  [New blocking port (red triangle)](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/stp-new-blocking.png)
 
 ## Time to Complete
 25 minutes
