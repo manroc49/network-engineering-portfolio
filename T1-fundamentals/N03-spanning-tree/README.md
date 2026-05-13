@@ -1,116 +1,103 @@
-# Project N03: Spanning Tree Protocol (PVST+)
+# N03: Spanning Tree Protocol (PVST+)
 
 ## What This Proves
-I can prevent Layer 2 loops by configuring Spanning Tree root bridge placement and verify convergence after link failure.
+
+I can prevent Layer 2 loops by configuring Spanning Tree root bridge placement and verify convergence after link failure. STP automatically blocks redundant ports to stop broadcast storms, then unblocks them if the active path fails.
 
 ## Topology
-- **3x Cisco 2960 Switches** (Triangle: Switch0 → Switch1 → Switch2 → Switch0)
-- **3x PCs** (one per switch for testing)
-- **Redundant links** (creates loop without STP)
 
-## Design Goal
-- Make Switch0 the **Root Bridge** for VLAN 1
-- Observe default blocking port, then manually control root election
-- Verify convergence when root bridge link fails
+- 3x Cisco 2960 switches (Switch0, Switch1, Switch2 in a triangle)
+- 3x PCs (PC0 on Switch0, PC1 on Switch1, PC2 on Switch2)
+- Redundant links (creates physical loop that STP must prevent)
 
-## IP Addressing Plan
-| Device | Interface | IP Address | Subnet Mask |
-|--------|-----------|------------|-------------|
-| PC0 | Fa0 | 192.168.1.10 | 255.255.255.0 |
-| PC1 | Fa0 | 192.168.1.11 | 255.255.255.0 |
-| PC2 | Fa0 | 192.168.1.12 | 255.255.255.0 |
+**Note:** Triangle topology means every switch connects to the other two. Without STP, this creates a broadcast storm. With STP, one port is automatically blocked.
+
+## STP Configuration
+
+| Switch | STP Role | Bridge Priority | Blocking Port |
+|--------|----------|-----------------|---------------|
+| Switch0 | Root Bridge | 24576 (root primary) | None |
+| Switch1 | Designated Bridge | 28672 (root secondary) | None |
+| Switch2 | Non-Root | 32768 (default) | Yes (Gig0/1 or Gig0/2) |
+
+## IP Addressing (for ping testing)
+
+| Device | IP Address | Subnet Mask | Connected To |
+|--------|------------|-------------|--------------|
+| PC0 | 192.168.1.10 | 255.255.255.0 | Switch0 Fa0/1 |
+| PC1 | 192.168.1.11 | 255.255.255.0 | Switch1 Fa0/1 |
+| PC2 | 192.168.1.12 | 255.255.255.0 | Switch2 Fa0/1 |
 
 *All PCs on same subnet (VLAN 1 default) – no router needed*
 
-## Step-by-Step Configuration
+## Configuration Files
 
-### 1. Find Default Blocking Port
-```
-Switch> enable
-Switch# show spanning-tree
-```
-**Expected:** One switch has a port showing `Altn BLK`
+- [switch0-config.txt](switch0-config.txt) - Root bridge (root primary)
+- [switch1-config.txt](switch1-config.txt) - Secondary root (root secondary)
+- [switch2-config.txt](switch2-config.txt) - Non-root (default STP)
 
-### 2. Configure Root Bridge (Switch0)
-```
-Switch0> enable
-Switch0# configure terminal
-Switch0(config)# spanning-tree vlan 1 root primary
-Switch0(config)# end
-Switch0# write memory
-```
+## Verification Results (All Passed)
 
-### 3. Verify Root Bridge
-```
-Switch0# show spanning-tree
-```
-**Expected:** `This bridge is the root`
+| Test | Command | Result |
+|------|---------|--------|
+| Default blocking port | `show spanning-tree` before config | ✅ One switch showed `Altn BLK` |
+| Root bridge config | `spanning-tree vlan 1 root primary` on Switch0 | ✅ No errors |
+| Root bridge verification | `show spanning-tree` on Switch0 | ✅ "This bridge is the root" |
+| Blocking port moved | `show spanning-tree` on Switch1/Switch2 | ✅ Blocking port on non-root switch |
+| Ping before failure | `ping 192.168.1.11 -n 4` from PC2 | ✅ 4 replies, 0% loss |
+| Ping during failure | `ping 192.168.1.11 -n 1000` + shutdown Switch0 Gig0/2 | ✅ Paused for 8 seconds, then resumed |
+| New blocking port after failure | `show spanning-tree` on Switch2 | ✅ Red triangle on different port (Packet Tracer bug) |
 
-### 4. Configure Secondary Root (Switch1) – Optional
-```
-Switch1> enable
-Switch1# configure terminal
-Switch1(config)# spanning-tree vlan 1 root secondary
-Switch1(config)# end
-Switch1# write memory
-```
+## Screenshots
 
-### 5. Test Convergence (Failure Simulation)
-```
-! On PC2 Command Prompt
-ping 192.168.1.11 -n 1000
+- [Initial blocking port before config](screenshots/N03-stp-initial-blocking.png)
+- [Root bridge verification](screenshots/N03-stp-root-verified.png)
+- [Ping loss during failover](screenshots/N03-ping-failure-convergence.png)
+- [New blocking port after convergence (red triangle)](screenshots/N03-stp-new-blocking.png)
 
-! While ping runs, on Switch0
-Switch0# configure terminal
-Switch0(config)# interface gigabitEthernet 0/2
-Switch0(config-if)# shutdown
-```
-**Expected:** Pings stop, then resume after 30-50 seconds
+## Issues I Ran Into & How I Fixed Them
 
-### 6. Find New Blocking Port
-Look for red triangle on physical topology view (Packet Tracer does not show `Altn BLK` in CLI after reconvergence)
+| Problem | Symptom | Fix |
+|---------|---------|-----|
+| No blocking port appears | All ports show `Desg FWD` | Check triangle cabling – all three switches must connect |
+| Pings never work | `Request timed out` from start | Forgot to assign IP addresses to PCs |
+| Pings never resume after shutdown | Timeouts keep going forever | Wait up to 50 seconds (STP is slow) or check which port now has red triangle |
+| `spanning-tree vlan 10 root primary` errors | `% Invalid input detected` | VLAN 10 doesn't exist. Use VLAN 1 only or create VLANs first |
+| Blocking port missing from `show spanning-tree` after failure | Port just disappears from output | Packet Tracer bug. Look for red triangle on physical topology instead |
+| `| include "Root|Bridge"` doesn't work | `% Invalid input detected at '^' marker` | Packet Tracer doesn't support pipe filtering. Use `show spanning-tree` and read manually |
 
-## Verification Commands Summary
-| Command | What It Shows |
-|---------|----------------|
-| `show spanning-tree` | Root bridge, port roles |
-| `show spanning-tree vlan 1` | STP info for VLAN 1 |
-| `show spanning-tree root` | Root bridge ID |
+## What I'd Do Differently Next Time
 
-## Packet Tracer Note
-**Important:** Packet Tracer does NOT always show blocking ports (`Altn BLK`) in `show spanning-tree` output after link failure. Instead, look for **red triangles** on physical ports in the topology view.
+- Use RSTP (802.1w) instead of classic STP for sub-second convergence
+- Configure `spanning-tree portfast` on access ports (PC-facing ports) to skip listening/learning states
+- Use `spanning-tree bpduguard` on access ports to prevent rogue switches from becoming root
+- In a real network, use `show spanning-tree detail` for more granular timer information
+- Document convergence time more precisely using Wireshark to capture BPDU timestamps
 
-## Expected Results
-| Switch | Role | Blocking Indicator |
-|--------|------|---------------------|
-| Switch0 | Root Bridge | No red triangles |
-| Switch1 | Designated Bridge | No red triangles |
-| Switch2 | Non-Root | Red triangle on Gi0/1 or Gi0/2 |
+## Key Commands Used
 
-## Convergence Time
-- **Observed in test:** ___ seconds (count `Request timed out` messages)
+### STP Configuration
+- `spanning-tree vlan 1 root primary` (force root bridge)
+- `spanning-tree vlan 1 root secondary` (backup root)
+- `show spanning-tree` (view STP status)
+- `show spanning-tree vlan 1` (specific VLAN)
+- `show spanning-tree interface gigabitEthernet 0/1` (port-specific)
 
-## Files in This Folder
--  [N03-spanning-tree.pkt](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/N03-spanning-tree.pkt)
--  [switch0-config.txt](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/switch0-config.txt)
--  [switch1-config.txt](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/switch2-config.txt)
--  [switch2-config.txt](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/switch3-config.txt)
+### Failure Testing
+- `ping 192.168.1.11 -n 1000` from PC2 (continuous ping)
+- `interface gigabitEthernet 0/2` → `shutdown` (break root bridge link)
+- `no shutdown` (restore link)
 
-## Troubleshooting
-| Problem | Solution |
-|---------|----------|
-| No red triangles | Check triangle cabling |
-| Pings fail | Verify IP addresses on PCs |
-| Port missing from `show spanning-tree` | Check physical red triangle – Packet Tracer bug |
-| Pings don't resume | Wait up to 50 seconds |
+## What I Learned
 
-## Screenshots 
--  [Topology 1](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/topology-1.png)
--  [Topology 2](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/topolgy-2.png)
--  [Initial blocking port](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/stp-intial-blocking.png)
--  [Root bridge verification](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/stp-root-verified.png)
--  [Ping loss during failover](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/ping-failure-convergence.png)
--  [New blocking port (red triangle)](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/screenshots/stp-new-blocking.png)
+- STP prevents loops by electing a root bridge and blocking redundant ports. The root bridge is elected by lowest bridge priority (default 32768), then lowest MAC address.
+- Port roles: `Root` (faces root bridge), `Desg` (Designated, forwards away from root), `Altn` (Alternate/Blocking, prevents loop).
+- Convergence with default timers takes about 50 seconds (Blocking 20s → Listening 15s → Learning 15s → Forwarding).
+- Forcing a root bridge with `spanning-tree vlan 1 root primary` sets priority to 24576, guaranteeing it wins.
+- Packet Tracer has a bug: after reconvergence, `show spanning-tree` sometimes omits blocking ports entirely. Look for red triangles on the physical topology view instead.
+- When a link fails, STP reconverges and the blocking port transitions to forwarding. Traffic resumes automatically.
+- Classic STP is slow (30-50 seconds). Modern networks use RSTP (802.1w) for sub-second failover.
 
 ## Time to Complete
-25 minutes
+
+25 minutes (including troubleshooting Packet Tracer bugs)
