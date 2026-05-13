@@ -50,10 +50,11 @@ I can prevent Layer 2 loops by configuring Spanning Tree root bridge placement a
 
 ## Screenshots
 
-- [Initial blocking port before config](screenshots/N03-stp-initial-blocking.png)
-- [Root bridge verification](screenshots/N03-stp-root-verified.png)
-- [Ping loss during failover](screenshots/N03-ping-failure-convergence.png)
-- [New blocking port after convergence (red triangle)](screenshots/N03-stp-new-blocking.png)
+- [Topology 1](screenshots/topology-1.png)
+- [Initial blocking port before config](screenshots/stp-initial-blocking.png)
+- [Root bridge verification](screenshots/stp-root-verified.png)
+- [Ping loss during failover](screenshots/ping-failure-convergence.png)
+- [New blocking port after convergence (red triangle)](screenshots/stp-new-blocking.png)
 
 ## Issues I Ran Into & How I Fixed Them
 
