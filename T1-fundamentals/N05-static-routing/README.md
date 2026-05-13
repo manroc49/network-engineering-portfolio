@@ -97,7 +97,7 @@ I can manually configure routes on three routers in a chain so they can reach ea
 - Always check PC IP addresses first. I wasted 10 minutes troubleshooting routing when PC3 was on the wrong subnet.
 
 ## Screenshots
-- [Topology](
+- [Topology](screenshots/topology.png)
 - [Static routes on R1](screenshots/show-ip-route-r1.png)
 - [Static routes on R2](screenshots/show-ip-route-r2.png)
 - [PC1 pinging PC3 across all routers](screenshots/ping-across-routers.png)
