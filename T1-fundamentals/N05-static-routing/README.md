@@ -63,7 +63,6 @@ I can manually configure routes on three routers in a chain so they can reach ea
 | PC3 had wrong IP address | PC1 could not ping PC3, PC3 could not ping its gateway | Changed PC3 IP from 192.168.1.10 to 192.168.3.10 |
 | Missing static route on R2 | PC1 ping to PC3 failed | Added `ip route 192.168.3.0 255.255.255.0 10.0.23.2` on R2 |
 | Missing return path static route | Ping went one way but replies failed | Added `ip route 192.168.1.0 255.255.255.0 10.0.23.1` on R3 |
-| Router-to-router cable type | Link not coming up | Used Copper Cross-Over (red dashed line) between routers |
 
 ## What I'd Do Differently Next Time
 
