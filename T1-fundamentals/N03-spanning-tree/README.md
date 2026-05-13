@@ -24,7 +24,14 @@ I can prevent Layer 2 loops by configuring Spanning Tree root bridge placement a
 
 ## Step-by-Step Configuration
 
-### Configure Root Bridge (Switch0)
+### 1. Find Default Blocking Port
+```
+Switch> enable
+Switch# show spanning-tree
+```
+**Expected:** One switch has a port showing `Altn BLK`
+
+### 2. Configure Root Bridge (Switch0)
 ```
 Switch0> enable
 Switch0# configure terminal
@@ -33,7 +40,13 @@ Switch0(config)# end
 Switch0# write memory
 ```
 
-### Configure Secondary Root (Switch1)
+### 3. Verify Root Bridge
+```
+Switch0# show spanning-tree
+```
+**Expected:** `This bridge is the root`
+
+### 4. Configure Secondary Root (Switch1) – Optional
 ```
 Switch1> enable
 Switch1# configure terminal
@@ -42,67 +55,62 @@ Switch1(config)# end
 Switch1# write memory
 ```
 
-## Verification Commands
+### 5. Test Convergence (Failure Simulation)
 ```
-! Verify root bridge
-show spanning-tree | include "Root|Bridge"
+! On PC2 Command Prompt
+ping 192.168.1.11 -n 1000
 
-! Verify blocking port
-show spanning-tree | include "Altn|BLK"
-
-! Show STP on specific interface
-show spanning-tree interface gigabitEthernet 0/1
-```
-
-## Failure Simulation (Convergence Test)
-```
-! On root bridge, shut down trunk port
+! While ping runs, on Switch0
 Switch0# configure terminal
-Switch0(config)# interface gigabitEthernet 0/1
+Switch0(config)# interface gigabitEthernet 0/2
 Switch0(config-if)# shutdown
-
-! From PC2, ping PC1 continuously to observe convergence
-ping 192.168.1.11
 ```
+**Expected:** Pings stop, then resume after 30-50 seconds
+
+### 6. Find New Blocking Port
+Look for red triangle on physical topology view (Packet Tracer does not show `Altn BLK` in CLI after reconvergence)
+
+## Verification Commands Summary
+| Command | What It Shows |
+|---------|----------------|
+| `show spanning-tree` | Root bridge, port roles |
+| `show spanning-tree vlan 1` | STP info for VLAN 1 |
+| `show spanning-tree root` | Root bridge ID |
+
+## Packet Tracer Note
+**Important:** Packet Tracer does NOT always show blocking ports (`Altn BLK`) in `show spanning-tree` output after link failure. Instead, look for **red triangles** on physical ports in the topology view.
 
 ## Expected Results
-| Switch | Role | Blocking Port? |
-|--------|------|----------------|
-| Switch0 | Root Bridge | No |
-| Switch1 | Designated Bridge | No |
-| Switch2 | Non-Root | Yes (one port in Altn/BLK) |
+| Switch | Role | Blocking Indicator |
+|--------|------|---------------------|
+| Switch0 | Root Bridge | No red triangles |
+| Switch1 | Designated Bridge | No red triangles |
+| Switch2 | Non-Root | Red triangle on Gi0/1 or Gi0/2 |
 
 ## Convergence Time
-- **Default STP:** ~50 seconds
-- **With root primary configured:** ~30-50 seconds
-- **Observed in test:** ___ seconds
+- **Observed in test:** ___ seconds (count `Request timed out` messages)
 
-## STP Port States
-| State | Time | Action |
-|-------|------|--------|
-| Blocking | 20 sec | Listens for BPDUs only |
-| Listening | 15 sec | Elects root/designated ports |
-| Learning | 15 sec | Learns MACs, no traffic |
-| Forwarding | - | Normal operation |
+## Files in This Folder
+-  [N03-spanning-tree.pkt](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/N03-spanning-tree.pkt)
+-  [switch0-config.txt](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/switch0-config.txt)
+-  [switch1-config.txt](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/switch2-config.txt)
+-  [switch2-config.txt](https://github.com/manroc49/network-engineering-portfolio/blob/main/T1-fundamentals/N03-spanning-tree/switch3-config.txt)
 
 ## Troubleshooting
 | Problem | Solution |
 |---------|----------|
-| No blocking port | Check triangle cabling |
+| No red triangles | Check triangle cabling |
 | Pings fail | Verify IP addresses on PCs |
-| Pings don't resume after shutdown | Wait up to 50 seconds |
+| Port missing from `show spanning-tree` | Check physical red triangle – Packet Tracer bug |
+| Pings don't resume | Wait up to 50 seconds |
 
-## Files in This Folder
-| File | Purpose |
-|------|---------|
-| `N03-spanning-tree.pkt` | Packet Tracer topology |
-| `switch0-config.txt` | Root bridge config |
-| `switch1-config.txt` | Secondary root config |
-| `switch2-config.txt` | Non-root config |
-| `screenshots/N03-stp-initial-blocking.png` | Blocking port before config |
-| `screenshots/N03-stp-root-verified.png` | Root bridge verification |
-| `screenshots/N03-ping-failure-convergence.png` | Ping loss during failover |
-| `screenshots/N03-stp-new-blocking.png` | New blocking port after convergence |
+## Screenshots 
+-  [Topology 1](/screenshots/topology-1.png)
+-  [Topology 2](/screenshots/topolgy-2.png)
+-  [Initial blocking port](/screenshots/stp-initial-blocking.png)
+-  [Root bridge verification](/screenshots/stp-root-verified.png)
+-  [Ping loss during failover](/screenshots/ping-failure-convergence.png)
+-  [New blocking port (red triangle)](/sreenshots/stp-new-blocking.png)
 
 ## Time to Complete
-20 minutes
+25 minutes
