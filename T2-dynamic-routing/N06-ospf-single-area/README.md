@@ -160,19 +160,6 @@ I can configure OSPF in a single area (Area 0) across four routers, establish ne
     show ip route ospf
     show ip protocols
 
-## Files in This Folder
-
-
-|------|---------|
-| `N06-ospf-single-area.pkt` | Packet Tracer topology |
-| `R1-config.txt` | R1 running config |
-| `R2-config.txt` | R2 running config |
-| `R3-config.txt` | R3 running config |
-| `R4-config.txt` | R4 running config |
-| `screenshots/ospf-neighbors.png` | `show ip ospf neighbor` on R2 |
-| `screenshots/ospf-routes-r1.png` | `show ip route ospf` on R1 |
-| `screenshots/ospf-simulation.png` | OSPF Hello packet in Simulation mode |
-
 
 ## Verification Results (All Passed)
 
@@ -227,7 +214,7 @@ I can configure OSPF in a single area (Area 0) across four routers, establish ne
 - Packet Tracer Simulation mode can capture OSPF packets. Useful for understanding Hello intervals and LSAs.
 
 ## Screenshots
-
+- [Topology](screenshots/topology.png)
 - [OSPF neighbors on R2](screenshots/ospf-neighbors.png)
 - [OSPF routes on R1](screenshots/ospf-routes-r1.png)
 - [OSPF Hello packet in Simulation mode](screenshots/ospf-simulation.png)
