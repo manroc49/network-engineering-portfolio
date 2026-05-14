@@ -1,5 +1,4 @@
-# N07: OSPF Multi-Area – Splitting The Network So OSPF Doesn't Melt
-
+# N07: OSPF Multi-Area 
 ## What This Proves
 
 I can configure OSPF across multiple areas (Area 0 backbone, Area 1, and Area 2) with an ABR (Area Border Router) handling route summarization and inter-area routing. This reduces LSA flooding and SPF calculations compared to a single-area design.
