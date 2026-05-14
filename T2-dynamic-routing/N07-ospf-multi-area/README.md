@@ -1,4 +1,4 @@
-# N07: OSPF Multi-Area – Splitting The Network So OSPF Doesn't Melt
+# N07: OSPF Multi-Area 
 
 ## What This Proves
 
