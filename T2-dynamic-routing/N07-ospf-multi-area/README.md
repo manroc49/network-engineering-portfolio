@@ -252,4 +252,4 @@ I can configure OSPF across multiple areas (Area 0 backbone, Area 1, and Area 2)
 
 ## Time to Complete
 
-30 minutes
+90 minutes
