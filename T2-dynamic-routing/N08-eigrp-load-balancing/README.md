@@ -1,5 +1,4 @@
-# N08: EIGRP Load Balancing – Three Links, Two Routers, One Unequal-Cost Path
-
+# N08: EIGRP Load Balancing
 ## What This Proves
 
 I can configure EIGRP across three parallel serial links between two routers and use the `variance` command to enable unequal-cost load balancing. Traffic is distributed across all three links even when one link has higher bandwidth than the others.
