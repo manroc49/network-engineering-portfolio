@@ -187,7 +187,7 @@ I can configure EIGRP across three parallel serial links between two routers and
 - The DCE side of a serial link needs `clock rate`. The DTE side does not. Click the DCE end first when cabling in Packet Tracer.
 
 ## Screenshots
-
+- [Topology](screenshots/topology.png)
 - [EIGRP neighbors on R1](screenshots/eigrp-neighbors.png)
 - [EIGRP topology table](screenshots/eigrp-topology.png)
 - [Route to 2.2.2.2 with variance 3](screenshots/ip-route-2.2.2.2.png)
