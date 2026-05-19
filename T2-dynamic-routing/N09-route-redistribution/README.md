@@ -265,7 +265,7 @@ I can configure route redistribution between OSPF and EIGRP on a boundary router
 - OSPF external routes appear as `O E2` in the routing table and Type 5 LSAs in the OSPF database
 
 ## Screenshots
-
+- [Topology](screenshots/topology.png)
 - [OSPF routes on R1 (O E2 routes)](screenshots/ospf-routes-r1.png)
 - [EIGRP routes on R3 (D EX 1.1.1.1)](screenshots/eigrp-routes-r3.png)
 - [Cross-domain ping success](screenshots/ping-r1-to-r3.png)
