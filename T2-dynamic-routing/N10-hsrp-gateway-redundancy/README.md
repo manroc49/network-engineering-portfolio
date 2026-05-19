@@ -1,4 +1,4 @@
-# N10: HSRP Gateway Redundancy – Two Routers, One Virtual Gateway
+# N10: HSRP Gateway Redundancy
 
 ## What This Proves
 
