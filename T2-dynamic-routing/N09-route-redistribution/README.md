@@ -1,4 +1,4 @@
-# N09: Route Redistribution – Making OSPF and EIGRP Talk To Each Other
+# N09: Route Redistribution
 
 ## What This Proves
 
