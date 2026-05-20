@@ -199,4 +199,4 @@ Expected: 5 replies, 0% loss
 
 ## Time to Complete
 
-45 minutes (including troubleshooting security license and Packet Tracer limitations)
+90 minutes (including troubleshooting security license and Packet Tracer limitations)
