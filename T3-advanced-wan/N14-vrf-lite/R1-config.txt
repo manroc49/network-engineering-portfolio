@@ -1,0 +1,21 @@
+!
+ip vrf RED
+ rd 65001:1
+ route-target export 65001:1
+ route-target import 65001:1
+!
+ip vrf BLUE
+ rd 65001:2
+ route-target export 65001:2
+ route-target import 65001:2
+!
+interface fastEthernet 0/0
+ ip vrf forwarding RED
+ ip address 10.0.0.1 255.255.255.0
+ no shutdown
+!
+interface fastEthernet 0/1
+ ip vrf forwarding BLUE
+ ip address 10.1.0.1 255.255.255.0
+ no shutdown
+!
