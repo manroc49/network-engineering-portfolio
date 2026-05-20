@@ -2,54 +2,43 @@
 
 ## What This Proves
 
-I can configure VRF Lite (Virtual Routing and Forwarding) on a router to create multiple isolated routing tables. RED VRF and BLUE VRF operate as completely separate routers. Traffic from RED cannot reach BLUE even though they share the same physical router. This is used in MPLS VPNs and multi-tenant environments.
+I can explain VRF Lite (Virtual Routing and Forwarding) and how it creates multiple isolated routing tables on a single router. RED VRF and BLUE VRF operate as completely separate routers. Traffic from RED cannot reach BLUE even though they share the same physical hardware. This is used in MPLS VPNs and multi-tenant environments.
 
-## Topology
+**Note:** Packet Tracer does not support VRF commands on any router model (tested on 2811, 1941, 1841). The configuration below is the correct Cisco IOS syntax for real hardware or GNS3/EVE-NG. This lab documents my understanding of VRF Lite despite the simulator limitation.
 
-- 2x Cisco 1941 routers (R1, R2)
+## Topology (Planned)
+
+- 1x Router (2811 or 1941) - VRF capable in real IOS
 - 2x PCs (PC1 in RED VRF, PC2 in BLUE VRF)
-- Separate physical links for each VRF between R1 and R2
-- RED VRF: 10.0.0.0/24 network
-- BLUE VRF: 10.1.0.0/24 network
+- RED VRF: 10.0.0.0/24 network on FastEthernet0/0
+- BLUE VRF: 10.1.0.0/24 network on FastEthernet0/1
 
 ## IP Addressing Plan
 
 | Device | Interface | VRF | IP Address | Subnet Mask | Connected To |
 |--------|-----------|-----|------------|-------------|--------------|
-| R1 | Gig0/0 | RED | 10.0.0.1 | 255.255.255.0 | R2 Gig0/0 |
-| R1 | Gig0/1 | BLUE | 10.1.0.1 | 255.255.255.0 | R2 Gig0/1 |
-| R2 | Gig0/0 | RED | 10.0.0.2 | 255.255.255.0 | R1 Gig0/0 |
-| R2 | Gig0/1 | BLUE | 10.1.0.2 | 255.255.255.0 | R1 Gig0/1 |
-| PC1 | Fa0 | RED | 10.0.0.10 | 255.255.255.0 | R1 Gig0/0 |
-| PC2 | Fa0 | BLUE | 10.1.0.10 | 255.255.255.0 | R1 Gig0/1 |
+| R1 | FastEthernet0/0 | RED | 10.0.0.1 | 255.255.255.0 | PC1 |
+| R1 | FastEthernet0/1 | BLUE | 10.1.0.1 | 255.255.255.0 | PC2 |
+| PC1 | Fa0 | RED | 10.0.0.10 | 255.255.255.0 | R1 Fa0/0 |
+| PC2 | Fa0 | BLUE | 10.1.0.10 | 255.255.255.0 | R1 Fa0/1 |
 
-## VRF Configuration Summary
+## VRF Configuration (Correct Syntax for Real IOS)
 
-| VRF Name | RD | Route-Target Export | Route-Target Import | Interfaces on R1 | Interfaces on R2 |
-|----------|----|--------------------|--------------------|------------------|------------------|
-| RED | 65001:1 | 65001:1 | 65001:1 | Gig0/0 | Gig0/0 |
-| BLUE | 65001:2 | 65001:2 | 65001:2 | Gig0/1 | Gig0/1 |
+| VRF Name | RD | Route-Target Export | Route-Target Import | Interfaces |
+|----------|----|--------------------|--------------------|------------|
+| RED | 65001:1 | 65001:1 | 65001:1 | FastEthernet0/0 |
+| BLUE | 65001:2 | 65001:2 | 65001:2 | FastEthernet0/1 |
 
 ## Configuration Files
 
-- [R1-config.txt](R1-config.txt) - VRF RED and VRF BLUE on R1
-- [R2-config.txt](R2-config.txt) - VRF RED and VRF BLUE on R2
+- [R1-config.txt](R1-config.txt) - VRF RED and VRF BLUE commands (syntax only, not executed in PT)
 
-## Step-by-Step Configuration
+## Step-by-Step Configuration (Real IOS Syntax)
 
-### 1. Build Topology
+### 1. Build Topology (Real Hardware or GNS3/EVE-NG)
 
-1. Open Packet Tracer → File → New
-2. Routers → drag 2x 1941 routers into workspace
-3. End Devices → drag 2x PCs into workspace
-4. Rename devices: R1, R2, PC1, PC2
-5. Click lightning bolt → solid black line (Copper Straight-Through)
-6. Connect:
-   - R1 Gig0/0 → R2 Gig0/0
-   - R1 Gig0/1 → R2 Gig0/1
-   - PC1 FastEthernet0 → R1 Gig0/0
-   - PC2 FastEthernet0 → R1 Gig0/1
-7. File → Save As → N14-vrf-lite.pkt
+1. Connect PC1 to R1 FastEthernet0/0
+2. Connect PC2 to R1 FastEthernet0/1
 
 ### 2. Configure VRFs on R1
 
@@ -68,32 +57,15 @@ I can configure VRF Lite (Virtual Routing and Forwarding) on a router to create 
     end
     write memory
 
-### 3. Configure VRFs on R2
-
-    enable
-    configure terminal
-    ip vrf RED
-    rd 65001:1
-    route-target export 65001:1
-    route-target import 65001:1
-    exit
-    ip vrf BLUE
-    rd 65001:2
-    route-target export 65001:2
-    route-target import 65001:2
-    exit
-    end
-    write memory
-
-### 4. Configure Interfaces on R1
+### 3. Assign Interfaces to VRFs and Configure IPs
 
     configure terminal
-    interface gigabitEthernet 0/0
+    interface fastEthernet 0/0
     ip vrf forwarding RED
     ip address 10.0.0.1 255.255.255.0
     no shutdown
     exit
-    interface gigabitEthernet 0/1
+    interface fastEthernet 0/1
     ip vrf forwarding BLUE
     ip address 10.1.0.1 255.255.255.0
     no shutdown
@@ -101,23 +73,7 @@ I can configure VRF Lite (Virtual Routing and Forwarding) on a router to create 
     end
     write memory
 
-### 5. Configure Interfaces on R2
-
-    configure terminal
-    interface gigabitEthernet 0/0
-    ip vrf forwarding RED
-    ip address 10.0.0.2 255.255.255.0
-    no shutdown
-    exit
-    interface gigabitEthernet 0/1
-    ip vrf forwarding BLUE
-    ip address 10.1.0.2 255.255.255.0
-    no shutdown
-    exit
-    end
-    write memory
-
-### 6. Configure PCs
+### 4. Configure PCs
 
 PC1:
 - IP: 10.0.0.10
@@ -129,52 +85,74 @@ PC2:
 - Subnet Mask: 255.255.255.0
 - Default Gateway: 10.1.0.1
 
-### 7. Verify VRF Routing Tables on R1
+## Verification Commands (Real IOS)
 
-    show ip route vrf RED
-    show ip route vrf BLUE
-
-### 8. Verify Cross-VRF Isolation
-
-On PC1:
-    ping 10.1.0.10
-
-Expected: No response (VRFs are isolated)
-
-On PC2:
-    ping 10.0.0.10
-
-Expected: No response (VRFs are isolated)
-
-## Verification Commands
-
-    show ip route vrf RED
-    show ip route vrf BLUE
     show vrf
-    ping vrf RED 10.0.0.2
-    ping vrf BLUE 10.1.0.2
+    show ip route vrf RED
+    show ip route vrf BLUE
 
-## Expected Results (Placeholder)
+## Expected Results (Real IOS)
 
 | Test | Command | Expected Result |
 |------|---------|-----------------|
-| VRF RED routing table | `show ip route vrf RED` | Shows 10.0.0.0/24 directly connected |
-| VRF BLUE routing table | `show ip route vrf BLUE` | Shows 10.1.0.0/24 directly connected |
-| VRF isolation | `ping 10.1.0.10` from PC1 | No response (0/5) |
-| VRF ping RED | `ping vrf RED 10.0.0.2` on R1 | Successful |
-| VRF ping BLUE | `ping vrf BLUE 10.1.0.2` on R1 | Successful |
+| VRF creation | `show vrf` | RED and BLUE VRFs listed |
+| RED routing table | `show ip route vrf RED` | 10.0.0.0/24 directly connected |
+| BLUE routing table | `show ip route vrf BLUE` | 10.1.0.0/24 directly connected |
+| Within-VRF ping | `ping 10.0.0.1` from PC1 | Successful |
+| Cross-VRF isolation | `ping 10.1.0.10` from PC1 | Fails (no route) |
+
+## Issues I Ran Into & How I Fixed Them
+
+| Problem | Symptom | Fix |
+|---------|---------|-----|
+| VRF commands not supported in PT | `% Invalid input detected at '^' marker` on `ip vrf RED` | Documented limitation, provided correct syntax for real IOS |
+| Tested multiple router models | 2811, 1941, 1841 all fail | Confirmed Packet Tracer does not support VRF |
+| No workaround in Packet Tracer | Cannot execute VRF configuration | Use GNS3/EVE-NG for actual VRF labs |
+
+## Packet Tracer Limitation Encountered
+
+| Issue | Impact | Resolution |
+|-------|--------|------------|
+| VRF commands not supported | Cannot execute VRF configuration | Document syntax and concepts; use GNS3/EVE-NG for actual lab |
+
+## What I'd Do Differently Next Time
+
+- Use GNS3 or EVE-NG with real Cisco IOS images for VRF labs
+- Research Packet Tracer limitations before starting advanced labs
+- Document the limitation as part of the portfolio (shows awareness of tool constraints)
+
+## Key Commands (Real IOS Syntax)
+
+- `ip vrf RED`
+- `rd 65001:1`
+- `route-target export 65001:1`
+- `route-target import 65001:1`
+- `ip vrf forwarding RED`
+- `show vrf`
+- `show ip route vrf RED`
+
+## What I Learned
+
+- VRF (Virtual Routing and Forwarding) allows a single router to maintain multiple independent routing tables.
+- Each VRF has its own route distinguisher (RD) to keep routes unique.
+- Route targets control which routes are exported and imported between VRFs.
+- VRF Lite is used in multi-tenant environments and MPLS VPNs.
+- Packet Tracer does not support VRF commands on any router model.
+- For advanced features like VRF, real hardware or GNS3/EVE-NG is required.
+
+## Screenshots
+
+- [VRF command error in Packet Tracer](screenshots/vrf-command-error.png) - Shows `% Invalid input detected` when attempting `ip vrf RED`
 
 ## Files in This Folder
 
 | File | Purpose |
 |------|---------|
-| `N14-vrf-lite.pkt` | Packet Tracer topology |
-| `R1-config.txt` | R1 running config (VRF RED + BLUE) |
-| `R2-config.txt` | R2 running config (VRF RED + BLUE) |
-| `screenshots/vrf-red-route.png` | `show ip route vrf RED` |
-| `screenshots/vrf-blue-route.png` | `show ip route vrf BLUE` |
-| `screenshots/vrf-isolation-ping.png` | Ping from PC1 to PC2 (failing) |
+| `N14-vrf-lite.pkt` | Packet Tracer topology (VRF not functional) |
+| `R1-config.txt` | R1 config commands (syntax only, not executed) |
+| `screenshots/vrf-command-error.png` | Evidence of Packet Tracer limitation |
+| `README.md` | This file |
 
-## Time to Complete (Estimated)
+## Time to Complete
 
-20 minutes
+15 minutes (including documentation of limitation)
