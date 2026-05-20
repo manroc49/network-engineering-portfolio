@@ -141,17 +141,9 @@ PC2:
 - For advanced features like VRF, real hardware or GNS3/EVE-NG is required.
 
 ## Screenshots
-
+- [Topology](screenshots/topology.png)
 - [VRF command error in Packet Tracer](screenshots/vrf-command-error.png) - Shows `% Invalid input detected` when attempting `ip vrf RED`
 
-## Files in This Folder
-
-| File | Purpose |
-|------|---------|
-| `N14-vrf-lite.pkt` | Packet Tracer topology (VRF not functional) |
-| `R1-config.txt` | R1 config commands (syntax only, not executed) |
-| `screenshots/vrf-command-error.png` | Evidence of Packet Tracer limitation |
-| `README.md` | This file |
 
 ## Time to Complete
 
