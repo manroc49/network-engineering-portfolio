@@ -2,14 +2,15 @@
 
 ## What This Proves
 
-I can configure a GRE tunnel between two routers (R1 and R2) and secure it with IPsec encryption. The GRE tunnel carries traffic between the two sites. IPsec encrypts the entire GRE tunnel. This creates a secure site-to-site VPN over an untrusted network (simulated by a direct link).
+I can configure a GRE tunnel between two routers (R1 and R2) to carry traffic across a simulated Internet connection. The GRE tunnel encapsulates packets, allowing routing between the two sites. IPsec encryption was attempted but could not be completed due to Packet Tracer limitations. The GRE tunnel itself is fully functional.
+
+**Note:** Packet Tracer does not support applying crypto maps to GRE tunnel interfaces in many versions. IPsec encryption could not be configured in this lab environment. The GRE tunnel itself is functional. For full IPsec VPN labs, use GNS3, EVE-NG, or CML.
 
 ## Topology
 
-- 2x Cisco 1941 routers (R1, R2)
+- 2x Cisco 2901 routers (R1, R2)
 - Simulated Internet connection between R1 and R2 (direct link)
 - GRE Tunnel (Tunnel0) between R1 and R2
-- IPsec IKEv1 protecting the GRE tunnel
 - Loopback interfaces to simulate LAN subnets on each side
 
 ## IP Addressing Plan
@@ -23,30 +24,21 @@ I can configure a GRE tunnel between two routers (R1 and R2) and secure it with 
 | R2 | Gig0/0 | 203.0.113.2 | 255.255.255.252 | Physical (simulated Internet) |
 | R2 | Tunnel0 | 10.0.0.2 | 255.255.255.252 | GRE tunnel |
 
-## GRE Tunnel + IPsec Configuration Summary
+## GRE Tunnel Configuration Summary
 
-| Router | Tunnel Source | Tunnel Destination | Tunnel IP | ISAKMP Policy | Pre-shared Key | Transform Set | Crypto Map ACL |
-|--------|---------------|-------------------|-----------|---------------|----------------|---------------|----------------|
-| R1 | 203.0.113.1 | 203.0.113.2 | 10.0.0.1/30 | 10 (aes256, sha256, pre-share, group14) | cisco123 | TSET (esp-aes256 esp-sha256-hmac) | 101 |
-| R2 | 203.0.113.2 | 203.0.113.1 | 10.0.0.2/30 | 10 (aes256, sha256, pre-share, group14) | cisco123 | TSET (esp-aes256 esp-sha256-hmac) | 101 |
+| Router | Tunnel Source | Tunnel Destination | Tunnel IP |
+|--------|---------------|-------------------|-----------|
+| R1 | 203.0.113.1 | 203.0.113.2 | 10.0.0.1/30 |
+| R2 | 203.0.113.2 | 203.0.113.1 | 10.0.0.2/30 |
 
 ## Configuration Files
 
-- [R1-config.txt](R1-config.txt) - GRE tunnel + IPsec
-- [R2-config.txt](R2-config.txt) - GRE tunnel + IPsec
+- [R1-config.txt](R1-config.txt) - GRE tunnel configuration
+- [R2-config.txt](R2-config.txt) - GRE tunnel configuration
 
 ## Step-by-Step Configuration
 
-### 1. Build Topology
-
-1. Open Packet Tracer → File → New
-2. Routers → drag 2x 1941 routers into workspace
-3. Rename devices: R1, R2
-4. Click lightning bolt → solid black line (Copper Straight-Through)
-5. Connect: R1 Gig0/0 → R2 Gig0/0
-6. File → Save As → N12-gre-ipsec.pkt
-
-### 2. Configure Basic IP on R1
+### 1. Configure Basic IP on R1
 
     enable
     configure terminal
@@ -57,10 +49,11 @@ I can configure a GRE tunnel between two routers (R1 and R2) and secure it with 
     ip address 203.0.113.1 255.255.255.252
     no shutdown
     exit
+    ip route 0.0.0.0 0.0.0.0 203.0.113.2
     end
     write memory
 
-### 3. Configure Basic IP on R2
+### 2. Configure Basic IP on R2
 
     enable
     configure terminal
@@ -71,36 +64,23 @@ I can configure a GRE tunnel between two routers (R1 and R2) and secure it with 
     ip address 203.0.113.2 255.255.255.252
     no shutdown
     exit
-    end
-    write memory
-
-### 4. Configure Default Route on R1 (to reach R2)
-
-    configure terminal
-    ip route 0.0.0.0 0.0.0.0 203.0.113.2
-    end
-    write memory
-
-### 5. Configure Default Route on R2 (to reach R1)
-
-    configure terminal
     ip route 0.0.0.0 0.0.0.0 203.0.113.1
     end
     write memory
 
-### 6. Verify Physical Connectivity
+### 3. Verify Physical Connectivity
 
 On R1:
     ping 203.0.113.2
 
 Expected: 5 replies, 0% loss
 
-### 7. Configure GRE Tunnel on R1
+### 4. Configure GRE Tunnel on R1
 
     configure terminal
     interface tunnel 0
     ip address 10.0.0.1 255.255.255.252
-    tunnel source 203.0.113.1
+    tunnel source gigabitEthernet 0/0
     tunnel destination 203.0.113.2
     tunnel mode gre ip
     no shutdown
@@ -108,12 +88,12 @@ Expected: 5 replies, 0% loss
     end
     write memory
 
-### 8. Configure GRE Tunnel on R2
+### 5. Configure GRE Tunnel on R2
 
     configure terminal
     interface tunnel 0
     ip address 10.0.0.2 255.255.255.252
-    tunnel source 203.0.113.2
+    tunnel source gigabitEthernet 0/0
     tunnel destination 203.0.113.1
     tunnel mode gre ip
     no shutdown
@@ -121,115 +101,21 @@ Expected: 5 replies, 0% loss
     end
     write memory
 
-### 9. Verify GRE Tunnel
+### 6. Verify GRE Tunnel
 
 On R1:
     show interface tunnel 0
 
-Expected: Tunnel0 is up/up
+Expected: Tunnel0 is up, line protocol is up
 
-On R2:
-    show interface tunnel 0
-
-Expected: Tunnel0 is up/up
-
-### 10. Configure ACL for IPsec (Match GRE traffic)
-
-On R1:
-    configure terminal
-    access-list 101 permit gre host 203.0.113.1 host 203.0.113.2
-    end
-    write memory
-
-On R2:
-    configure terminal
-    access-list 101 permit gre host 203.0.113.2 host 203.0.113.1
-    end
-    write memory
-
-### 11. Configure ISAKMP Policy on R1
-
-    configure terminal
-    crypto isakmp policy 10
-    encryption aes 256
-    hash sha256
-    authentication pre-share
-    group 14
-    exit
-    crypto isakmp key cisco123 address 203.0.113.2
-    end
-    write memory
-
-### 12. Configure ISAKMP Policy on R2
-
-    configure terminal
-    crypto isakmp policy 10
-    encryption aes 256
-    hash sha256
-    authentication pre-share
-    group 14
-    exit
-    crypto isakmp key cisco123 address 203.0.113.1
-    end
-    write memory
-
-### 13. Configure IPsec Transform Set on R1
-
-    configure terminal
-    crypto ipsec transform-set TSET esp-aes 256 esp-sha256-hmac
-    end
-    write memory
-
-### 14. Configure IPsec Transform Set on R2
-
-    configure terminal
-    crypto ipsec transform-set TSET esp-aes 256 esp-sha256-hmac
-    end
-    write memory
-
-### 15. Configure Crypto Map on R1
-
-    configure terminal
-    crypto map CMAP 10 ipsec-isakmp
-    set peer 203.0.113.2
-    set transform-set TSET
-    match address 101
-    exit
-    interface tunnel 0
-    crypto map CMAP
-    end
-    write memory
-
-### 16. Configure Crypto Map on R2
-
-    configure terminal
-    crypto map CMAP 10 ipsec-isakmp
-    set peer 203.0.113.1
-    set transform-set TSET
-    match address 101
-    exit
-    interface tunnel 0
-    crypto map CMAP
-    end
-    write memory
-
-### 17. Verify IPsec Security Associations
-
-Wait 30 seconds. On R1:
-
-    show crypto isakmp sa
-    show crypto ipsec sa
-
-Expected: ISAKMP SA established, IPsec SA shows packets encrypted/decrypted
-
-### 18. Test Tunnel Connectivity
+### 7. Test Tunnel Connectivity
 
 On R1:
     ping 10.0.0.2
 
 Expected: 5 replies, 0% loss
 
-### 19. Test Across Tunnel (Simulated LANs)
+### 8. Test Across Tunnel (Simulated LANs)
 
 On R1:
     ping 10.2.2.2 source 10.1.1.1
@@ -239,32 +125,78 @@ Expected: 5 replies, 0% loss
 ## Verification Commands
 
     show interface tunnel 0
-    show crypto isakmp sa
-    show crypto ipsec sa
-    show crypto map
+    show ip route
+    ping 10.0.0.2
+    ping 10.2.2.2 source 10.1.1.1
 
-## Expected Results (Placeholder)
+## Verification Results (All Passed for GRE Tunnel)
 
 | Test | Command | Expected Result |
 |------|---------|-----------------|
-| Tunnel interface | `show interface tunnel 0` | up/up |
-| ISAKMP SA | `show crypto isakmp sa` | QM_IDLE state |
-| IPsec SA | `show crypto ipsec sa` | packets encrypted/decrypted |
-| Tunnel ping | `ping 10.0.0.2` | 5 replies, 0% loss |
-| Across tunnel ping | `ping 10.2.2.2 source 10.1.1.1` | 5 replies, 0% loss |
+| Tunnel interface | `show interface tunnel 0` | ✅ up/up |
+| Tunnel connectivity | `ping 10.0.0.2` | ✅ 5 replies, 0% loss |
+| Across-tunnel ping | `ping 10.2.2.2 source 10.1.1.1` | ✅ 5 replies, 0% loss |
 
-## Files in This Folder
+## Issues I Ran Into & How I Fixed Them
 
-| File | Purpose |
-|------|---------|
-| `N12-gre-ipsec.pkt` | Packet Tracer topology |
-| `R1-config.txt` | R1 running config (GRE + IPsec) |
-| `R2-config.txt` | R2 running config (GRE + IPsec) |
-| `screenshots/tunnel-interface.png` | `show interface tunnel 0` |
-| `screenshots/crypto-isakmp-sa.png` | `show crypto isakmp sa` |
-| `screenshots/crypto-ipsec-sa.png` | `show crypto ipsec sa` |
-| `screenshots/ping-across-tunnel.png` | `ping 10.2.2.2 source 10.1.1.1` |
+| Problem | Symptom | Fix |
+|---------|---------|-----|
+| Security license not active | `show version` showed security: disable | Added `license boot module c2900 technology-package securityk9` and reloaded |
+| `hash sha256` not supported | `% Invalid input detected at '^' marker` | Changed to `hash sha` (SHA-1) |
+| `group 14` not supported | `% Invalid input detected at '^' marker` | Changed to `group 2` (DH Group 2) |
+| Crypto map on tunnel not supported | `% Invalid input detected at '^' marker` | Packet Tracer limitation - accepted GRE-only tunnel |
+| `show license` incomplete command | `% Incomplete command` | Used `show version` to verify license instead |
+| Pipe `|` not working | `% Invalid input detected` | Manually scrolled through `show running-config` |
 
-## Time to Complete (Estimated)
+## Packet Tracer Limitations Encountered
 
-35 minutes
+| Limitation | Impact | Workaround |
+|------------|--------|------------|
+| `crypto map` on tunnel interface not supported | IPsec cannot be applied to GRE tunnel | Use GNS3/EVE-NG for full IPsec VPN labs |
+| `hash sha256` not supported | Must use SHA-1 instead | Used `hash sha` |
+| `group 14` not supported | Must use lower DH group | Used `group 2` |
+| `show license` command incomplete | Cannot view license status directly | Used `show version` to verify |
+| Pipe `|` filtering not supported | Cannot filter command output | Manually scroll through output |
+
+## What I'd Do Differently Next Time
+
+- Use GNS3 or EVE-NG for full IPsec VPN labs (these support crypto maps on tunnel interfaces)
+- Use a simulator with full IOS feature support
+- Test crypto commands in a different environment before committing to Packet Tracer
+
+## Key Commands Used
+
+### GRE Tunnel Configuration
+- `interface tunnel 0`
+- `ip address 10.0.0.1 255.255.255.252`
+- `tunnel source gigabitEthernet 0/0`
+- `tunnel destination 203.0.113.2`
+- `tunnel mode gre ip`
+- `no shutdown`
+
+### Verification
+- `show interface tunnel 0`
+- `show ip route`
+- `ping 10.0.0.2`
+
+## What I Learned
+
+- GRE tunnels encapsulate packets inside IP packets, allowing routing between separate networks over a single physical link.
+- The tunnel source and destination are the physical interface IP addresses. The tunnel itself has its own IP address space.
+- GRE tunnels do not encrypt traffic by default. Anyone on the path can see the encapsulated packets.
+- Packet Tracer has significant limitations for security features like IPsec crypto maps on tunnel interfaces.
+- Security licenses on 2901 routers require the `license boot module c2900 technology-package securityk9` command followed by a reload.
+- In Packet Tracer, supported ISAKMP parameters are limited to `hash sha` (not sha256) and `group 2` (not group 14).
+- Even with an active security license, `crypto map` on tunnel interface is not supported in Packet Tracer.
+- For full VPN labs (GRE+IPsec), a different simulator (GNS3, EVE-NG, CML) is required.
+
+## Screenshots
+- [Topology](screenshots/topology.png)
+- [GRE Tunnel interface up/up](screenshots/tunnel-interface.png)
+- [Ping across GRE tunnel](screenshots/tunnel-ping.png)
+- [Show IP route with tunnel](screenshots/show-ip-route-tunnel.png)
+
+
+## Time to Complete
+
+45 minutes (including troubleshooting security license and Packet Tracer limitations)
