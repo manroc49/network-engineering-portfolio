@@ -1,4 +1,4 @@
-# N15: SPAN Port + Wireshark – Capturing Traffic for Analysis
+# N15: SPAN Port + Wireshark
 
 ## What This Proves
 
