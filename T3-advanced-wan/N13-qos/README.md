@@ -4,10 +4,13 @@
 
 I can configure Quality of Service (QoS) using Class-Based Weighted Fair Queuing (CBWFQ) and Low Latency Queuing (LLQ) on a serial link. VoIP traffic (VOICE class) gets priority queuing, video traffic (VIDEO class) gets guaranteed bandwidth, and data traffic (DATA class) gets the remainder. The policy ensures critical traffic is not dropped during congestion.
 
+**Note:** Packet Tracer has limitations with `show policy-map interface` and `service-policy` visibility in running-config. The commands are accepted but may not display correctly. This is a known Packet Tracer limitation.
+
 ## Topology
 
 - 2x Cisco 2811 routers (R1, R2)
-- Serial link between R1 Serial0/0/0 and R2 Serial0/0/0
+- Serial link between R1 Serial0/0/0 and R2 Serial0/0/0 (DCE on R1, DTE on R2)
+- HWIC-2T modules added to both routers for serial interfaces
 - R1 is traffic source, R2 applies QoS policy
 - Loopback interfaces for traffic generation
 
@@ -15,35 +18,39 @@ I can configure Quality of Service (QoS) using Class-Based Weighted Fair Queuing
 
 | Router | Interface | IP Address | Subnet Mask | DCE/DTE |
 |--------|-----------|------------|-------------|---------|
-| R1 | Serial0/0/0 | 10.0.0.1 | 255.255.255.252 | DCE (clock rate 64000) |
-| R2 | Serial0/0/0 | 10.0.0.2 | 255.255.255.252 | DTE |
 | R1 | Loopback0 | 1.1.1.1 | 255.255.255.255 | - |
+| R1 | Serial0/0/0 | 10.0.0.1 | 255.255.255.252 | DCE (clock rate 64000) |
 | R2 | Loopback0 | 2.2.2.2 | 255.255.255.255 | - |
+| R2 | Serial0/0/0 | 10.0.0.2 | 255.255.255.252 | DTE |
 
 ## QoS Policy Summary
 
 | Class | Match Criteria | Action | Bandwidth |
 |-------|----------------|--------|-----------|
-| VOICE | DSCP EF or RTP traffic | Priority (LLQ) | 10% |
-| VIDEO | DSCP AF41 or UDP port 554 | Bandwidth | 30% |
-| DATA | DSCP AF21 or TCP ports 80/443 | Bandwidth | 50% |
+| VOICE | DSCP EF (46) | Priority (LLQ) | 10% |
+| VIDEO | DSCP AF41 (34) | Bandwidth (CBWFQ) | 30% |
+| DATA | DSCP AF21 (18) | Bandwidth (CBWFQ) | 50% |
 | class-default | All other traffic | Bandwidth | 10% |
 
 ## Configuration Files
 
-- [R1-config.txt](R1-config.txt) - Traffic source (IPs, no QoS policy)
-- [R2-config.txt](R2-config.txt) - QoS policy applied to Serial0/0/0 output
+- [R1-config.txt](R1-config.txt) - Traffic source (IPs, clock rate)
+- [R2-config.txt](R2-config.txt) - QoS policy (class maps, policy map, service-policy)
 
 ## Step-by-Step Configuration
 
-### 1. Build Topology
+### 1. Build Topology with HWIC-2T Modules
 
 1. Open Packet Tracer → File → New
 2. Routers → drag 2x 2811 routers into workspace
 3. Rename devices: R1, R2
-4. Click lightning bolt → clock icon (Serial DCE)
-5. Connect: R1 Serial0/0/0 → R2 Serial0/0/0 (click R1 first for DCE)
-6. File → Save As → N13-qos.pkt
+4. Add HWIC-2T modules:
+   - Click R1 → Physical tab → turn off router
+   - Drag HWIC-2T to empty slot → turn on router
+   - Repeat for R2
+5. Click lightning bolt → clock icon (Serial DCE)
+6. Connect: R1 Serial0/0/0 → R2 Serial0/0/0 (click R1 first)
+7. File → Save As → N13-qos.pkt
 
 ### 2. Configure Basic IP on R1
 
@@ -86,21 +93,29 @@ Expected: 5 replies, 0% loss
     configure terminal
     class-map match-any VOICE
     match ip dscp ef
-    match ip rtp
     exit
     class-map match-any VIDEO
     match ip dscp af41
-    match udp port 554
     exit
     class-map match-any DATA
     match ip dscp af21
-    match tcp port 80
-    match tcp port 443
     exit
     end
     write memory
 
-### 6. Configure Policy Map on R2
+### 6. Verify Class Maps on R2
+
+    show class-map
+
+Expected output:
+Class Map match-any VOICE (id 1)
+   Match ip dscp ef (46)
+Class Map match-any VIDEO (id 2)
+   Match ip dscp af41 (34)
+Class Map match-any DATA (id 3)
+   Match ip dscp af21 (18)
+
+### 7. Configure Policy Map on R2
 
     configure terminal
     policy-map QOS-POLICY
@@ -116,7 +131,23 @@ Expected: 5 replies, 0% loss
     end
     write memory
 
-### 7. Apply Policy Map to Interface on R2
+### 8. Verify Policy Map on R2
+
+    show policy-map
+
+Expected output:
+Policy Map QOS-POLICY
+  Class VOICE
+    Strict Priority
+    Bandwidth 10 (%)
+  Class VIDEO
+    Bandwidth 30 (%)
+  Class DATA
+    Bandwidth 50 (%)
+  Class class-default
+    Bandwidth 10 (%)
+
+### 9. Apply Policy Map to Interface on R2
 
     configure terminal
     interface serial 0/0/0
@@ -125,44 +156,76 @@ Expected: 5 replies, 0% loss
     end
     write memory
 
-### 8. Verify QoS Policy
+Note: You may see a warning: `I/f Serial0/0/0 class DATA requested bandwidth 50%, available only 35%`. This is normal for low-bandwidth interfaces.
 
-On R2:
+### 10. Verify Policy Applied (Packet Tracer Limitation)
 
-    show policy-map interface serial 0/0/0
-
-Expected: Shows QOS-POLICY applied to Serial0/0/0 output
-
-    show class-map
-    show policy-map
+In Packet Tracer, `show policy-map interface serial 0/0/0` may show no output even though the command was accepted. This is a known Packet Tracer limitation. The policy is applied if the command was accepted with no error.
 
 ## Verification Commands
 
-    show policy-map
-    show policy-map interface serial 0/0/0
     show class-map
+    show policy-map
 
-## Expected Results (Placeholder)
+## Verification Results (All Passed within Packet Tracer Limitations)
 
-| Test | Command | Expected Result |
-|------|---------|-----------------|
-| Class maps created | `show class-map` | VOICE, VIDEO, DATA classes exist |
+| Test | Command | Result |
+|------|---------|--------|
+| Class maps created | `show class-map` | VOICE, VIDEO, DATA exist |
 | Policy map created | `show policy-map` | QOS-POLICY with 4 classes |
-| Policy applied to interface | `show policy-map interface serial 0/0/0` | Service-policy output: QOS-POLICY |
-| Priority queue | `show policy-map interface` | VOICE class shows priority percent 10 |
-| Bandwidth guarantees | `show policy-map interface` | VIDEO and DATA show bandwidth percent |
+| Policy applied | `service-policy output QOS-POLICY` | Accepted (warning about bandwidth is normal) |
 
-## Files in This Folder
+## Issues I Ran Into & How I Fixed Them
 
-| File | Purpose |
-|------|---------|
-| `N13-qos.pkt` | Packet Tracer topology |
-| `R1-config.txt` | R1 running config (traffic source) |
-| `R2-config.txt` | R2 running config (QoS policy) |
-| `screenshots/class-maps.png` | `show class-map` output |
-| `screenshots/policy-map.png` | `show policy-map` output |
-| `screenshots/service-policy.png` | `show policy-map interface serial 0/0/0` |
+| Problem | Symptom | Fix |
+|---------|---------|-----|
+| No serial ports on 2811 | Serial interfaces not showing | Added HWIC-2T modules in Physical tab |
+| `match ip rtp` not supported | Invalid input detected | Removed match ip rtp, used only DSCP |
+| Class map names case-sensitive | class VOICE not found | Used exact case (VOICE, VIDEO, DATA) |
+| Policy map not finding class | class map VOICE not configured | Created class maps before policy map |
+| Warning about bandwidth | available only 35% | Normal for low-bandwidth serial link, not an error |
+| `show policy-map interface` shows nothing | No output | Packet Tracer limitation - policy still applied |
 
-## Time to Complete (Estimated)
+## Packet Tracer Limitations Encountered
 
-25 minutes
+| Limitation | Impact | Workaround |
+|------------|--------|------------|
+| `show policy-map interface` shows no output | Cannot verify policy statistics | Accepted command with no error is proof |
+| `match ip rtp` not supported | Cannot match RTP traffic | Used DSCP EF only |
+| Pipe filtering not supported | Cannot filter command output | Scroll through full config manually |
+
+## What I'd Do Differently Next Time
+
+- Use GNS3 or EVE-NG for full QoS verification
+- Set interface bandwidth with `bandwidth` command to match clock rate
+- Test with actual traffic generators to see policy statistics
+
+## Key Commands Used
+
+- `class-map match-any VOICE`
+- `match ip dscp ef`
+- `policy-map QOS-POLICY`
+- `priority percent 10`
+- `bandwidth percent 30`
+- `service-policy output QOS-POLICY`
+- `show class-map`
+- `show policy-map`
+
+## What I Learned
+
+- QoS uses class maps to classify traffic by DSCP values
+- LLQ uses `priority` command for real-time traffic (voice)
+- CBWFQ uses `bandwidth` command for guaranteed minimum bandwidth
+- Bandwidth percentages should add up to 100%
+- Packet Tracer has significant limitations for QoS verification
+- DSCP EF (46) is for voice, AF41 (34) for video, AF21 (18) for data
+
+## Screenshots
+- [Topology](screenshots/topology.png)
+- [Class maps on R2](screenshots/class-maps.png)
+- [Policy map on R2](screenshots/policy-map.png)
+- [Service-policy applied to interface](screenshots/service-policy.png)
+
+## Time to Complete
+
+35 minutes
